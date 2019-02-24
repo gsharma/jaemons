@@ -2,6 +2,8 @@ package com.github.jaemons;
 
 import java.lang.management.BufferPoolMXBean;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -60,6 +62,17 @@ public final class DirectMemoryProbe extends Thread {
 
   public Collection<DirectMemorySnapshot> getDirectMemoryUsage() {
     return snapshots.values();
+  }
+
+  // Warning: handle with care
+  public static void gcOffHeapBuffer(final ByteBuffer buffer) throws Exception {
+    logger.info("Garbage collecting {}", buffer);
+    final Method cleanerMethod = buffer.getClass().getMethod("cleaner");
+    cleanerMethod.setAccessible(true);
+    final Object cleaner = cleanerMethod.invoke(buffer);
+    final Method cleanMethod = cleaner.getClass().getMethod("clean");
+    cleanMethod.setAccessible(true);
+    cleanMethod.invoke(cleaner);
   }
 
   /**
