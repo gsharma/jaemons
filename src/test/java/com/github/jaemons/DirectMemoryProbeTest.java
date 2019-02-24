@@ -15,6 +15,11 @@ import org.junit.Test;
 
 import com.github.jaemons.DirectMemoryProbe.DirectMemorySnapshot;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
+
 /**
  * Tests to maintain functional sanity of DirectMemoryProbe.
  * 
@@ -68,7 +73,6 @@ public class DirectMemoryProbeTest {
 
     LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(probeFrequency * 2));
     snapshots = probe.getDirectMemoryUsage();
-
     assertEquals(2, snapshots.size());
 
     // expect probe to find direct memory usage
@@ -109,6 +113,57 @@ public class DirectMemoryProbeTest {
       }
     }
 
+    /*
+    // step 4: allocate netty bytebuf
+    directBufferCapacity = 8;
+    final ByteBuf nettyByteBuf =
+        new PooledByteBufAllocator(true).directBuffer(directBufferCapacity);
+    assertEquals("PooledUnsafeDirectByteBuf", nettyByteBuf.getClass().getSimpleName());
+    try {
+      LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(probeFrequency * 2));
+      snapshots = probe.getDirectMemoryUsage();
+      assertEquals(2, snapshots.size());
+
+      // expect probe to find direct memory usage
+      for (final DirectMemorySnapshot snapshot : snapshots) {
+        if (snapshot.poolName.equals("direct")) {
+          assertEquals(2L, snapshot.bufferCount);
+          assertEquals(2, snapshot.memoryUsed);
+          assertEquals(1, snapshot.capacityEstimate);
+        }
+
+        else if (snapshot.poolName.equals("mapped")) {
+          assertEquals(0L, snapshot.bufferCount);
+          assertEquals(0L, snapshot.memoryUsed);
+          assertEquals(0L, snapshot.capacityEstimate);
+        }
+      }
+
+      // step 5: release netty direct buffer, probe should reflect zero usage
+    } finally {
+      nettyByteBuf.release();
+    }
+    LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(probeFrequency * 2));
+    snapshots = probe.getDirectMemoryUsage();
+    assertEquals(2, snapshots.size());
+
+    // expect no direct memory usage since buffers were both garbage-collected
+    for (final DirectMemorySnapshot snapshot : snapshots) {
+      if (snapshot.poolName.equals("direct")) {
+        assertEquals(0L, snapshot.bufferCount);
+        assertEquals(0L, snapshot.memoryUsed);
+        assertEquals(0L, snapshot.capacityEstimate);
+      }
+
+      else if (snapshot.poolName.equals("mapped")) {
+        assertEquals(0L, snapshot.bufferCount);
+        assertEquals(0L, snapshot.memoryUsed);
+        assertEquals(0L, snapshot.capacityEstimate);
+      }
+    }
+    */
+
+    // step n: interrupt probe
     probe.interrupt();
   }
 

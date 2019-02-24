@@ -2,6 +2,7 @@ package com.github.jaemons;
 
 import java.lang.management.BufferPoolMXBean;
 import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryUsage;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.Collection;
@@ -35,6 +36,10 @@ public final class DirectMemoryProbe extends Thread {
     logger.info("Initialized probe");
     try {
       while (!isInterrupted()) {
+        final MemoryUsage offHeapUsage =
+            ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
+        logger.info(offHeapUsage);
+
         final List<BufferPoolMXBean> pools =
             ManagementFactory.getPlatformMXBeans(BufferPoolMXBean.class);
         for (final BufferPoolMXBean pool : pools) {
