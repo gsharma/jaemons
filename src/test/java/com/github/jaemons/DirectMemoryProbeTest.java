@@ -32,7 +32,7 @@ public class DirectMemoryProbeTest {
     long probeFrequency = 10L;
     final DirectMemoryProbe probe = new DirectMemoryProbe(probeFrequency);
     // wait for probe to wake-up and collect data
-    LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(probeFrequency * 2));
+    LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(probeFrequency * 4));
 
     // step 1: query probe for latest snapshot of direct memory usage
     Collection<DirectMemorySnapshot> snapshots = probe.getDirectMemoryUsage();
@@ -71,7 +71,7 @@ public class DirectMemoryProbeTest {
       file.delete();
     }
 
-    LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(probeFrequency * 2));
+    LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(probeFrequency * 4));
     snapshots = probe.getDirectMemoryUsage();
     assertEquals(2, snapshots.size());
 
@@ -94,7 +94,7 @@ public class DirectMemoryProbeTest {
     DirectMemoryProbe.gcOffHeapBuffer(directBuffer);
     DirectMemoryProbe.gcOffHeapBuffer(mappedBuffer);
 
-    LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(probeFrequency * 2));
+    LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(probeFrequency * 4));
     snapshots = probe.getDirectMemoryUsage();
     assertEquals(2, snapshots.size());
 
