@@ -5,7 +5,8 @@
 
 # Java Daemons aka jaemons
 
-Jaemons is a collection of a few probes that I've found useful to run as daemons over the years.
+Jaemons is a collection of a few probes that I've found useful to run as daemons over the years. This will be a wip project and I'll build it over time.
 
-WIP
+Available daemons:
+1. DirectMemoryProbe
 

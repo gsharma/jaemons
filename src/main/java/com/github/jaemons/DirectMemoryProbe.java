@@ -179,7 +179,6 @@ public final class DirectMemoryProbe extends Thread {
       }
       return true;
     }
-
   }
 
 }
