@@ -28,6 +28,7 @@ public final class DirectMemoryProbe extends Thread {
 
   public DirectMemoryProbe(final long probeMillis) {
     this.probeMillis = probeMillis;
+    ManagementFactory.getMemoryMXBean().setVerbose(true);
     setDaemon(true);
     setName("direct-memory-probe");
     start();
@@ -39,9 +40,10 @@ public final class DirectMemoryProbe extends Thread {
     try {
       while (!isInterrupted()) {
         final DirectMemorySnapshot directMemorySnapshot = new DirectMemorySnapshot();
-        directMemorySnapshot.probeTime = System.currentTimeMillis();
+        directMemorySnapshot.probeTime = System.currentTimeMillis();        
         final MemoryUsage offHeapUsage =
             ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
+        System.out.println(offHeapUsage);
         directMemorySnapshot.initMemory = offHeapUsage.getInit();
         directMemorySnapshot.maxMemory = offHeapUsage.getMax();
         directMemorySnapshot.usedMemory = offHeapUsage.getUsed();
