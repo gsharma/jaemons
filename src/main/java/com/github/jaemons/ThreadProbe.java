@@ -70,31 +70,33 @@ public final class ThreadProbe extends Thread {
         }
 
         for (final ThreadInfo threadInfo : threadMXBean.getThreadInfo(allThreadIds)) {
-          final State threadState = threadInfo.getThreadState();
-          if (statesOfInterest.contains(threadState)) {
-            // switch (threadState) {
-            // case NEW:
-            // case RUNNABLE:
-            // case BLOCKED:
-            // case WAITING:
-            // case TIMED_WAITING:
-            // case TERMINATED:
-            // break;
-            final Long threadId = threadInfo.getThreadId();
-            final String threadName = threadInfo.getThreadName();
-            final String lockName = threadInfo.getLockName();
-            final String lockOwnerName = threadInfo.getLockOwnerName();
-            final long threadBlockedMillis = threadInfo.getBlockedTime();
-            final StackTraceElement[] threadStack = allThreadIdStackTraces.get(threadId);
-            final ThreadSnapshot threadSnapshot = new ThreadSnapshot();
-            threadSnapshot.threadId = threadId;
-            threadSnapshot.threadName = threadName;
-            threadSnapshot.threadState = threadState;
-            threadSnapshot.lockName = lockName;
-            threadSnapshot.lockOwnerName = lockOwnerName;
-            threadSnapshot.threadBlockedMillis = threadBlockedMillis;
-            threadSnapshot.threadStack = threadStack;
-            threadsSnapshot.threadSnapshotContainer.add(threadSnapshot);
+          if (threadInfo != null) {
+            final State threadState = threadInfo.getThreadState();
+            if (statesOfInterest.contains(threadState)) {
+              // switch (threadState) {
+              // case NEW:
+              // case RUNNABLE:
+              // case BLOCKED:
+              // case WAITING:
+              // case TIMED_WAITING:
+              // case TERMINATED:
+              // break;
+              final Long threadId = threadInfo.getThreadId();
+              final String threadName = threadInfo.getThreadName();
+              final String lockName = threadInfo.getLockName();
+              final String lockOwnerName = threadInfo.getLockOwnerName();
+              final long threadBlockedMillis = threadInfo.getBlockedTime();
+              final StackTraceElement[] threadStack = allThreadIdStackTraces.get(threadId);
+              final ThreadSnapshot threadSnapshot = new ThreadSnapshot();
+              threadSnapshot.threadId = threadId;
+              threadSnapshot.threadName = threadName;
+              threadSnapshot.threadState = threadState;
+              threadSnapshot.lockName = lockName;
+              threadSnapshot.lockOwnerName = lockOwnerName;
+              threadSnapshot.threadBlockedMillis = threadBlockedMillis;
+              threadSnapshot.threadStack = threadStack;
+              threadsSnapshot.threadSnapshotContainer.add(threadSnapshot);
+            }
           }
         }
         this.threadsSnapshot.set(threadsSnapshot);
