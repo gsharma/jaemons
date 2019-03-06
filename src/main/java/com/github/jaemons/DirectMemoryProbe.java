@@ -2,6 +2,7 @@ package com.github.jaemons;
 
 import java.lang.management.BufferPoolMXBean;
 import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
@@ -40,10 +41,14 @@ public final class DirectMemoryProbe extends Thread {
     try {
       while (!isInterrupted()) {
         final DirectMemorySnapshot directMemorySnapshot = new DirectMemorySnapshot();
-        directMemorySnapshot.probeTime = System.currentTimeMillis();        
+        directMemorySnapshot.probeTime = System.currentTimeMillis();
+        final List<MemoryPoolMXBean> memoryPoolBeans = ManagementFactory.getMemoryPoolMXBeans();
+        for (final MemoryPoolMXBean memoryPoolBean : memoryPoolBeans) {
+          logger.info("{}:{}:{}", memoryPoolBean.getType(), memoryPoolBean.getName(),
+              memoryPoolBean.getUsage());
+        }
         final MemoryUsage offHeapUsage =
             ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
-        System.out.println(offHeapUsage);
         directMemorySnapshot.initMemory = offHeapUsage.getInit();
         directMemorySnapshot.maxMemory = offHeapUsage.getMax();
         directMemorySnapshot.usedMemory = offHeapUsage.getUsed();
