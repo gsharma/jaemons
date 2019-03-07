@@ -3,6 +3,7 @@ package com.github.jaemons;
 import java.lang.management.BufferPoolMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
@@ -44,6 +45,11 @@ public final class DirectMemoryProbe extends Thread {
         directMemorySnapshot.probeTime = System.currentTimeMillis();
         final List<MemoryPoolMXBean> memoryPoolBeans = ManagementFactory.getMemoryPoolMXBeans();
         for (final MemoryPoolMXBean memoryPoolBean : memoryPoolBeans) {
+          if (memoryPoolBean != null && memoryPoolBean.getType() == MemoryType.NON_HEAP) {
+            final String poolName = memoryPoolBean.getName();
+            final MemoryUsage poolUsage = memoryPoolBean.getUsage();
+          }
+          // TODO: populate more snapshots
           logger.info("{}:{}:{}", memoryPoolBean.getType(), memoryPoolBean.getName(),
               memoryPoolBean.getUsage());
         }
