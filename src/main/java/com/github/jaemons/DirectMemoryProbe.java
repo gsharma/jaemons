@@ -101,6 +101,7 @@ public final class DirectMemoryProbe extends Thread {
   }
 
   public final static class DirectMemorySnapshot {
+    public String poolName;
     public final List<BufferSnapshot> bufferSnapshots = new ArrayList<>();
     public long initMemory;
     public long maxMemory;
@@ -111,10 +112,10 @@ public final class DirectMemoryProbe extends Thread {
     @Override
     public String toString() {
       StringBuilder builder = new StringBuilder();
-      builder.append("DirectMemorySnapshot [").append(bufferSnapshots).append(", initMemory=")
-          .append(initMemory).append(", maxMemory=").append(maxMemory).append(", usedMemory=")
-          .append(usedMemory).append(", committedMemory=").append(committedMemory)
-          .append(", probeTime=").append(probeTime).append("]");
+      builder.append("DirectMemorySnapshot [poolName=").append(poolName).append(", ")
+          .append(bufferSnapshots).append(", initMemory=").append(initMemory).append(", maxMemory=")
+          .append(maxMemory).append(", usedMemory=").append(usedMemory).append(", committedMemory=")
+          .append(committedMemory).append(", probeTime=").append(probeTime).append("]");
       return builder.toString();
     }
 
