@@ -24,7 +24,7 @@ import org.apache.logging.log4j.Logger;
 public final class DirectMemoryProbe extends Thread {
   private static final Logger logger =
       LogManager.getLogger(DirectMemoryProbe.class.getSimpleName());
-  private final AtomicReference<DirectMemorySnapshot> directMemorySnapshot =
+  private final AtomicReference<List<DirectMemorySnapshot>> directMemorySnapshots =
       new AtomicReference<>();
   private final long probeMillis;
 
@@ -41,18 +41,26 @@ public final class DirectMemoryProbe extends Thread {
     logger.info("Initialized probe");
     try {
       while (!isInterrupted()) {
-        final DirectMemorySnapshot directMemorySnapshot = new DirectMemorySnapshot();
-        directMemorySnapshot.probeTime = System.currentTimeMillis();
+        final List<DirectMemorySnapshot> directMemorySnapshots = new ArrayList<>();
         final List<MemoryPoolMXBean> memoryPoolBeans = ManagementFactory.getMemoryPoolMXBeans();
         for (final MemoryPoolMXBean memoryPoolBean : memoryPoolBeans) {
           if (memoryPoolBean != null && memoryPoolBean.getType() == MemoryType.NON_HEAP) {
-            final String poolName = memoryPoolBean.getName();
-            final MemoryUsage poolUsage = memoryPoolBean.getUsage();
+            final DirectMemorySnapshot directMemorySnapshot = new DirectMemorySnapshot();
+            directMemorySnapshot.probeTime = System.currentTimeMillis();
+            directMemorySnapshot.poolName = memoryPoolBean.getName();
+            final MemoryUsage offHeapUsage = memoryPoolBean.getUsage();
+            directMemorySnapshot.initMemory = offHeapUsage.getInit();
+            directMemorySnapshot.maxMemory = offHeapUsage.getMax();
+            directMemorySnapshot.usedMemory = offHeapUsage.getUsed();
+            directMemorySnapshot.committedMemory = offHeapUsage.getCommitted();
+            directMemorySnapshots.add(directMemorySnapshot);
           }
           // TODO: populate more snapshots
           logger.info("{}:{}:{}", memoryPoolBean.getType(), memoryPoolBean.getName(),
               memoryPoolBean.getUsage());
         }
+        final DirectMemorySnapshot directMemorySnapshot = new DirectMemorySnapshot();
+        directMemorySnapshot.probeTime = System.currentTimeMillis();
         final MemoryUsage offHeapUsage =
             ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
         directMemorySnapshot.initMemory = offHeapUsage.getInit();
@@ -75,8 +83,9 @@ public final class DirectMemoryProbe extends Thread {
           snapshot.bufferCount = bufferCount;
           directMemorySnapshot.bufferSnapshots.add(snapshot);
         }
-        this.directMemorySnapshot.set(directMemorySnapshot);
-        logger.info(directMemorySnapshot);
+        directMemorySnapshots.add(directMemorySnapshot);
+        this.directMemorySnapshots.set(directMemorySnapshots);
+        logger.info(directMemorySnapshots);
         sleep(probeMillis);
       }
     } catch (InterruptedException problem) {
@@ -85,8 +94,8 @@ public final class DirectMemoryProbe extends Thread {
     logger.info("Doused probe");
   }
 
-  public DirectMemorySnapshot getDirectMemoryUsage() {
-    return directMemorySnapshot.get();
+  public List<DirectMemorySnapshot> getDirectMemoryUsage() {
+    return directMemorySnapshots.get();
   }
 
   // Warning: handle with care
