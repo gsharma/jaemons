@@ -36,6 +36,10 @@ public final class DirectMemoryProbe extends Thread {
     start();
   }
 
+  public enum DirectMemoryPool {
+    CODE_CACHE, METASPACE, COMPRESSED_CLASS_SPACE, DIRECT_MAPPED;
+  }
+
   @Override
   public void run() {
     logger.info("Initialized probe");
@@ -61,6 +65,7 @@ public final class DirectMemoryProbe extends Thread {
         }
         final DirectMemorySnapshot directMemorySnapshot = new DirectMemorySnapshot();
         directMemorySnapshot.probeTime = System.currentTimeMillis();
+        directMemorySnapshot.poolName = "Direct/Mapped";
         final MemoryUsage offHeapUsage =
             ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
         directMemorySnapshot.initMemory = offHeapUsage.getInit();
