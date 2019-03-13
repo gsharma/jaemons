@@ -9,4 +9,4 @@ Jaemons is a collection of a few probes that I've found useful to run as daemons
 
 Available daemons:
 1. DirectMemoryProbe
-
+2. ThreadProbe
