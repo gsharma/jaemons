@@ -8,6 +8,7 @@ import java.lang.management.MemoryUsage;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -49,6 +50,8 @@ public final class DirectMemoryProbe extends Thread {
         final List<MemoryPoolMXBean> memoryPoolBeans = ManagementFactory.getMemoryPoolMXBeans();
         for (final MemoryPoolMXBean memoryPoolBean : memoryPoolBeans) {
           if (memoryPoolBean != null && memoryPoolBean.getType() == MemoryType.NON_HEAP) {
+            // TODO
+            logger.info(Arrays.deepToString(memoryPoolBean.getMemoryManagerNames()));
             final DirectMemorySnapshot directMemorySnapshot = new DirectMemorySnapshot();
             directMemorySnapshot.probeTime = System.currentTimeMillis();
             directMemorySnapshot.poolName = memoryPoolBean.getName();
