@@ -17,12 +17,8 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
 import com.github.jaemons.DirectMemoryProbe.BufferSnapshot;
+import com.github.jaemons.DirectMemoryProbe.DirectMemoryPool;
 import com.github.jaemons.DirectMemoryProbe.DirectMemorySnapshot;
-
-// import io.netty.buffer.ByteBuf;
-// import io.netty.buffer.ByteBufAllocator;
-// import io.netty.buffer.PooledByteBufAllocator;
-// import io.netty.buffer.Unpooled;
 
 /**
  * Tests to maintain functional sanity of DirectMemoryProbe.
@@ -35,7 +31,7 @@ public final class DirectMemoryProbeTest {
 
   @Test
   public void testSnapshots() throws Exception {
-    long probeFrequency = 10L, probeTime = -1L;
+    long probeFrequency = 10L, probeTimeMillis = -1L, currTimeMillis = -1L;
     final DirectMemoryProbe probe = new DirectMemoryProbe(probeFrequency);
     // wait for probe to wake-up and collect data
     LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(probeFrequency * 4));
@@ -44,11 +40,16 @@ public final class DirectMemoryProbeTest {
     List<DirectMemorySnapshot> snapshots = probe.getDirectMemoryUsage();
     assertEquals(4, snapshots.size());
     for (final DirectMemorySnapshot snapshot : snapshots) {
-      // logger.info(snapshot);
-      probeTime = snapshot.probeTime;
-      assertTrue(probeTime < System.currentTimeMillis());
+      logger.info(snapshot);
+      probeTimeMillis = snapshot.probeTime;
+      currTimeMillis = System.currentTimeMillis();
+      assertTrue(String.format("probeTime:%d is not less than currTime:%d", probeTimeMillis,
+          currTimeMillis), probeTimeMillis < currTimeMillis);
 
-      if (snapshot.poolName.equals("Direct/Mapped")) {
+      final String poolName = snapshot.poolName;
+      assertTrue(DirectMemoryPool.getAllPoolNames().contains(poolName));
+
+      if (poolName.equals(DirectMemoryPool.DIRECT_MAPPED.getPoolName())) {
         assertEquals(2, snapshot.bufferSnapshots.size());
         assertEquals(-1L, snapshot.maxMemory);
 

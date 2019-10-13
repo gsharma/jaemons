@@ -8,7 +8,6 @@ import java.lang.management.MemoryUsage;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -37,10 +36,6 @@ public final class DirectMemoryProbe extends Thread {
     start();
   }
 
-  public enum DirectMemoryPool {
-    CODE_CACHE, METASPACE, COMPRESSED_CLASS_SPACE, DIRECT_MAPPED;
-  }
-
   @Override
   public void run() {
     logger.info("Initialized probe");
@@ -50,8 +45,6 @@ public final class DirectMemoryProbe extends Thread {
         final List<MemoryPoolMXBean> memoryPoolBeans = ManagementFactory.getMemoryPoolMXBeans();
         for (final MemoryPoolMXBean memoryPoolBean : memoryPoolBeans) {
           if (memoryPoolBean != null && memoryPoolBean.getType() == MemoryType.NON_HEAP) {
-            // TODO
-            logger.info(Arrays.deepToString(memoryPoolBean.getMemoryManagerNames()));
             final DirectMemorySnapshot directMemorySnapshot = new DirectMemorySnapshot();
             directMemorySnapshot.probeTime = System.currentTimeMillis();
             directMemorySnapshot.poolName = memoryPoolBean.getName();
@@ -61,14 +54,16 @@ public final class DirectMemoryProbe extends Thread {
             directMemorySnapshot.usedMemory = offHeapUsage.getUsed();
             directMemorySnapshot.committedMemory = offHeapUsage.getCommitted();
             directMemorySnapshots.add(directMemorySnapshot);
+            // logger.info(Arrays.deepToString(memoryPoolBean.getMemoryManagerNames()));
+            logger.info(directMemorySnapshot);
           }
-          // TODO: populate more snapshots
-          logger.info("{}:{}:{}", memoryPoolBean.getType(), memoryPoolBean.getName(),
-              memoryPoolBean.getUsage());
+          // TODO: populate more snapshots: eg. heap usage, if needed
+          // logger.info("{}:{}:{}", memoryPoolBean.getType(), memoryPoolBean.getName(),
+          // memoryPoolBean.getUsage());
         }
         final DirectMemorySnapshot directMemorySnapshot = new DirectMemorySnapshot();
         directMemorySnapshot.probeTime = System.currentTimeMillis();
-        directMemorySnapshot.poolName = "Direct/Mapped";
+        directMemorySnapshot.poolName = DirectMemoryPool.DIRECT_MAPPED.getPoolName();
         final MemoryUsage offHeapUsage =
             ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
         directMemorySnapshot.initMemory = offHeapUsage.getInit();
@@ -91,15 +86,38 @@ public final class DirectMemoryProbe extends Thread {
           snapshot.bufferCount = bufferCount;
           directMemorySnapshot.bufferSnapshots.add(snapshot);
         }
+        logger.info(directMemorySnapshot);
         directMemorySnapshots.add(directMemorySnapshot);
         this.directMemorySnapshots.set(directMemorySnapshots);
-        logger.info(directMemorySnapshots);
         sleep(probeMillis);
       }
     } catch (InterruptedException problem) {
       // exit run()
     }
     logger.info("Doused probe");
+  }
+
+  public enum DirectMemoryPool {
+    CODE_CACHE("Code Cache"), METASPACE("Metaspace"), COMPRESSED_CLASS_SPACE(
+        "Compressed Class Space"), DIRECT_MAPPED("Direct,Mapped");
+
+    private String poolName;
+
+    private DirectMemoryPool(final String poolName) {
+      this.poolName = poolName;
+    }
+
+    public String getPoolName() {
+      return poolName;
+    }
+
+    public static List<String> getAllPoolNames() {
+      final List<String> allPoolNames = new ArrayList<>();
+      for (final DirectMemoryPool pool : values()) {
+        allPoolNames.add(pool.poolName);
+      }
+      return allPoolNames;
+    }
   }
 
   public List<DirectMemorySnapshot> getDirectMemoryUsage() {
@@ -128,7 +146,7 @@ public final class DirectMemoryProbe extends Thread {
 
     @Override
     public String toString() {
-      StringBuilder builder = new StringBuilder();
+      final StringBuilder builder = new StringBuilder();
       builder.append("DirectMemorySnapshot [poolName=").append(poolName).append(", ")
           .append(bufferSnapshots).append(", initMemory=").append(initMemory).append(", maxMemory=")
           .append(maxMemory).append(", usedMemory=").append(usedMemory).append(", committedMemory=")
