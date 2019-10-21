@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.logging.log4j.LogManager;
@@ -23,10 +24,11 @@ public final class ThreadProbe extends Thread {
   private final long probeMillis;
   private final AtomicReference<ThreadsSnapshot> threadsSnapshot = new AtomicReference<>();
   private final List<State> statesOfInterest = new ArrayList<>();
+  private final long probeMillisLowWatermark = TimeUnit.MILLISECONDS.toMillis(10L);
 
   public ThreadProbe(final long probeMillis, final List<State> threadStatesOfInterest) {
-    this.probeMillis = probeMillis;
-    if (threadStatesOfInterest != null) {
+    this.probeMillis = Math.max(probeMillisLowWatermark, probeMillis);
+    if (threadStatesOfInterest != null && !threadStatesOfInterest.isEmpty()) {
       statesOfInterest.addAll(threadStatesOfInterest);
     } else {
       statesOfInterest.addAll(Arrays.asList(State.values()));
